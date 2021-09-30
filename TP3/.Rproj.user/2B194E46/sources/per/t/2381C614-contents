@@ -1,0 +1,64 @@
+#Partie1
+
+#adjust * bw est la fenêtre utilisée
+
+
+
+
+N = 2000
+p = 3/5
+u = runif(N)   #runif entre 0 et 1
+x = rnorm(N)   #rnorm centrée réduite
+Z = (u < p) * (x-1) + (u > p) * (x+2)
+
+#densité de mélange 2 gaussiennes
+f = function(x){
+  f = p * dnorm(x,-1,1) + (1-p) * dnorm(x,2,1)
+}
+
+t = seq(from=-5, to=6, by=0.1)
+
+
+
+est1.50 = density(Z[1:50],kernel="rectangular",n=length(t), from=-5, to=6)
+est2.50 = density(Z[1:50],kernel="gaussian",n=length(t), from=-5, to=6)
+
+est1.100 = density(Z[1:100],kernel="rectangular",n=length(t), from=-5, to=6)
+est2.100 = density(Z[1:100],kernel="gaussian",n=length(t), from=-5, to=6)
+
+est1.500 = density(Z[1:500],kernel="rectangular",n=length(t), from=-5, to=6)
+est2.500 = density(Z[1:500],kernel="gaussian",n=length(t), from=-5, to=6)
+
+est1.2000 = density(Z,kernel="rectangular",n=length(t), from=-5, to=6)
+est2.2000 = density(Z,kernel="gaussian",n=length(t), from=-5, to=6)
+
+
+par(mfrow=c(2,2))
+hist(Z[1:50], freq=FALSE, main="N=50", xlim=c(-5,6), ylim=c(0,0.25))
+lines(est1.50,col="black",lwd=2.5)
+lines(est2.50,col="red",lwd=2.5)
+lines(t,f(t),col="blue",lwd=2.5)
+legend("topright", legend=c("Uniforme", "Gaussienne", "Théorique"), col=c("black", "red", "blue"), lty=1, cex=1)
+
+hist(Z[1:100], freq=FALSE, main="N=100", xlim=c(-5,6), ylim=c(0,0.25))
+lines(est1.100,col="black",lwd=2.5)
+lines(est2.100,col="red",lwd=2.5)
+lines(t,f(t),col="blue",lwd=2.5)
+legend("topright", legend=c("Uniforme", "Gaussienne", "Théorique"), col=c("black", "red", "blue"), lty=1, cex=1)
+
+
+hist(Z[1:500], freq=FALSE, main="N=500", xlim=c(-5,6), ylim=c(0,0.25))
+lines(est1.500,col="black",lwd=2.5)
+lines(est2.500,col="red",lwd=2.5)
+lines(t,f(t),col="blue",lwd=2.5)
+legend("topright", legend=c("Uniforme", "Gaussienne", "Théorique"), col=c("black", "red", "blue"), lty=1, cex=1)
+
+hist(Z, freq=FALSE, main="N=2000", xlim=c(-5,6), ylim=c(0,0.25))
+lines(est1.2000,col="black",lwd=2.5)
+lines(est2.2000,col="red",lwd=2.5)
+lines(t,f(t),col="blue",lwd=2.5)
+legend("topright", legend=c("Uniforme", "Gaussienne", "Théorique"), col=c("black", "red", "blue"), lty=1, cex=1)
+
+
+
+#tracer f(t)vraie density, rectangulaire, gaussien ou epanechnikov

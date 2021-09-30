@@ -1,0 +1,7 @@
+"0","par(mfrow = c(2,2))"
+"0","n = c(50,100,500,2000)"
+"0","for (i in n){"
+"0","  plot(t,f(t), type = ""l"")"
+"0","  PR= density(Z[1:i],kernel=""rectangular"")"
+"0","  lines(PR, lwd = 2.5)"
+"0","}"

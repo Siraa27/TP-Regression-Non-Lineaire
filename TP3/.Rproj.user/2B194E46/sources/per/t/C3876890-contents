@@ -1,0 +1,92 @@
+---
+title: "TP3"
+author: "Israa BEN SASSI"
+date: "9/27/2021"
+output: html_document
+---
+
+
+# Partie 1 
+
+## Question 2
+ Simulation de 2000 réalisationd'une varaible aléatoire Z
+```{r}
+n = 2000
+u = runif(n)
+x = rnorm(n)
+Z = (u < 3/5) * (x-1) + (u> 3/5) * (x+2)
+
+```
+
+```{r}
+f = function(x){
+         f = 3 * dnorm(x,-1,1) / 5 + 2 * dnorm(x,2,1) / 5
+}
+
+```
+
+```{r}
+t= seq(from = -5, to = 6, by = 0.1)
+t
+```
+
+```{r}
+par(mfrow = c(2,2))
+n = c(50,100,500,2000)
+for (i in n){
+  plot(t,f(t), type = "l")
+  PR= density(Z[1:i],kernel="rectangular")
+  lines(PR, lwd = 2.5)
+}
+par(new = TRUE)
+
+```
+## Les valeurs estimer par Rozenblatt
+```{r}
+
+par(mfrow = c(2,2))
+n = c(50,100,500,2000)
+for (i in n){
+  plot(t,f(t), type = "l")
+  est1 = density(Z[1:i],kernel="rectangular",n=length(t), from=-5, to=6)
+  est2 = density(Z[1:i],kernel="gaussian",n=length(t), from=-5, to=6)
+  lines(est1, col = "cyan")
+  lines(est2, col = "red")
+}
+  legend(1, 95, legend=c("Estimateur rectangular", "Estimateur gaussien"),
+       col=c("cyan", "red"))
+par(new = TRUE)
+```
+
+```{r}
+n1 = 500
+u1 = runif(n)
+x1 = rnorm(n)
+Z1 = (u1 < 3/5) * (x1-1) + (u1> 3/5) * (x1+2)
+f = function(x1){
+         f = 3 * dnorm(x1,-1,1) / 5 + 2 * dnorm(x1,2,1) / 5
+}
+
+k = seq(from = -5, to = 6, by = 0.1)
+
+sZ = sd(Z)
+alpha = 0.20
+fenetre = sZ*n1**(-alpha)
+
+par(mfrow = c(2,2))
+n = c(50,100,500)
+
+for (i in n){
+  plot(k,f(k), type = "l")
+  PR= density(Z[1:i],kernel="gaussian", bw = fenetre )
+  lines(PR, lwd = 2.5)
+}
+par(new = TRUE)
+
+```
+
+
+
+Partie 2 :
+
+Tirer des conclusions sur les distributions

@@ -1,0 +1,231 @@
+#### Partie 1 ####
+sample(1:20,20)
+sample(1:20,20,replace=TRUE)
+
+data <- read.table(file = "carbone.txt", header = T, dec = ".")
+attach(data)
+cor1 = cor(data)[2]
+cor1
+tabB = c(10,100,1000,10000)
+for (b in tabB) {
+  B = b
+  correlation = c()
+  for (i in 1:B){
+    ind = sample(1:16,16,replace=TRUE)
+    correlation[i] = cor((data$R)[ind],(data$C)[ind])
+  }
+  biais = (1/B) * sum(correlation) - cor1
+  cat('Biais :', biais,'\n')
+  ecartype = sd(correlation)
+  cat('Ecart type :',ecartype,'\n')
+  hist(correlation)
+  boxplot(correlation)
+
+  
+  
+  
+#### Partie 2 ####
+  data2 <- read.table(file = "systolique.txt", header = T, dec = ".")
+  
+  statbase = NULL
+  for (j in 1:ncol(data2)){
+    statbase =rbind(statbase, summary(data2[,j]))
+  }
+  rownames(statbase) = names(data2)
+  statbase
+  ecart.type = apply(data2, 2, sd)
+  statbase = cbind(statbase, ecart.type)
+  round( statbase, 2)
+  
+  plot(data2)
+  correlation = cor(data2)[2]
+  correlation
+  
+  #construction du modèle
+  mod.lm = lm(Tension~Age,data2)
+  summary(mod.lm)
+  
+  my_df <- data.frame(Age=c(60))
+  prediction = predict(mod.lm, newdata=my_df)
+  IP1 = predict(mod.lm, newdata=my_df, interval = "prediction")
+  prediction
+  IP1
+  
+  my_df <- data.frame(Age=c(90))
+  prediction = predict(mod.lm, newdata=my_df)
+  IP2 = predict(mod.lm, newdata=my_df, interval = "prediction")
+  prediction
+  IP2
+  
+  
+  #étude du biais
+  dataB<- data2 #initialisation (copie)
+  n = 15
+  #se = sd(data)
+  cor2 = cor(data2)[2]
+  cor2
+  tabB = c(10,100,1000,10000)
+  for (b in tabB) {
+    B = b
+    correlation = c()
+    for (i in 1:B){
+      ind = sample(1:15,15,replace=TRUE)
+      correlation[i] = cor((data2$Age)[ind],(data2$Tension)[ind])
+    }
+    biais = (1/B) * sum(correlation) - cor2
+    cat('Biais :', biais,'\n')
+    ecartype = sd(correlation)
+    cat('Ecart type :',ecartype,'\n')
+    hist(correlation)
+    boxplot(correlation)
+    
+    #Prevision de la tension systolique d'une personne de 60 ans
+    pred1 = NULL
+    for(i in 1:1000){
+      ind = sample(1:15,15,replace=TRUE)
+      Age = (data2$Age)[ind]
+      Tension = (data2$Tension)[ind]
+      newmodel1 = lm((Tension~Age))
+      summary(newmodel1)
+      my_df <- data.frame(Age=c(60))
+      pred1[i] = predict(newmodel1, newdata=my_df, interval = "confidence")
+    }
+    intervalle1 = quantile(pred1,c(0.025,0.975))
+    intervalle1
+    cat(mean(pred1))
+    
+    
+    #Prevision de la tension systolique d'une personne de 90 ans
+    pred1 = NULL
+    for(i in 1:1000){
+      ind = sample(1:15,15,replace=TRUE)
+      Age = (data2$Age)[ind]
+      Tension = (data2$Tension)[ind]
+      newmodel1 = lm((Tension~Age))
+      summary(newmodel1)
+      my_df <- data.frame(Age=c(90))
+      pred1[i] = predict(newmodel1, newdata=my_df, interval = "confidence")
+    }
+    intervalle1 = quantile(pred1,c(0.025,0.975))
+    intervalle1
+    cat(mean(pred1))
+  
+  
+  
+#### Partie 3  ####
+
+  Nomfile <- "http://lmi2.insa-rouen.fr/~bportier/Data/ozone.txt"
+  ozone <- read.table(file=Nomfile, header=T, dec=".")
+  attach(ozone)
+  N <- nrow(ozone)
+  
+  Y <- maxO3
+  Intercept = rep(1, N)
+  X = cbind(Intercept,T12,Ne12,Vx)
+  XpX = t(X) %*% X   #X'X
+  b.divY = solve(XpX) %*% t(X)
+  b =  b.divY %*% Y  #solve inverse matrice
+  Xb = X %*% b
+  residus = Y - Xb
+  residus.bootstrap <- residus
+  
+  
+  #Bootstrap
+  B <-2000
+  resultat <- rep(0,B)
+  for (j in 1:B)
+  {
+    indices <- sample(1:N,N,replace=TRUE)
+    for (i in 1:N)
+    {
+      residus.bootstrap[i] <- residus[indices[i]]
+    }
+    
+    #Nouveau Y
+    Y.bootstrap <- Xb + residus.bootstrap
+    #Nouveau b
+    b.bootstrap <- b.divY %*% Y.bootstrap
+    
+    if (j == 1)
+    {resultat <- b.bootstrap}
+    else 
+    {resultat <- cbind(resultat, b.bootstrap)} #ajoute des vecteurs colonnes
+  }
+  resultat
+  b.bootstrap
+  
+  #Méthode des pourcentiles simples
+  resultat.bornes <- cbind(rep(0,4), rep(0,4))
+  for (i in 1:4)
+  {
+    #trie par ligne pour chaque paramètre
+    ligne <- sort(resultat[i,])
+    resultat.bornes[i,1] <- ligne[50]
+    resultat.bornes[i,2] <- ligne[1950]
+    
+  }
+  
+  resultat[,50]
+  resultat.bornes
+  
+  #méthode de l'erreur standard
+  
+  #Hypothèse de normalité de distribution d'échantillonnage
+  shapiro.test(resultat[1,])
+  shapiro.test(resultat[2,])
+  shapiro.test(resultat[3,])
+  shapiro.test(resultat[4,])
+  
+  #toutes les p-values bien au dessus de 0.05 donc on a bien
+  #l'hypothèse de normalité "approximative"
+  
+  res.se.bornes <- cbind(rep(0,4), rep(0,4))
+  res.se.bornes
+  
+  for (i in 1:4)
+  {
+    res.se.esp <- sum(resultat[i,]) / B
+    res.se <- 0
+    
+    for (j in 1:B)
+    {
+      res.se <- res.se + (resultat[i,j] - res.se.esp) * (resultat[i,j] - res.se.esp)
+    }
+    res.se <- sqrt(res.se / (B-1))
+    
+    res.se.bornes[i,1] <- b[i] - 1.960 * res.se
+    res.se.bornes[i,2] <- b[i] + 1.960 * res.se
+  }
+  
+  res.se.bornes
+  
+  
+  
+  #comparaison avec lm
+  reslm <- lm(maxO3~ T12 + Ne12 + Vx, ozone)
+  summary(reslm)
+  shapiro.test(reslm$residuals)
+  plot(reslm$residuals, xlab="Indices", ylab="R?sidus", main="Graphe des résidus")
+  abline(h=0,col="red")
+  
+  
+  res.lm.bornes <- cbind(rep(0,4), rep(0,4))
+  
+  res.lm.bornes[1,1] <- b[1] - 1.960 * 20.9219
+  res.lm.bornes[1,2] <- b[1] + 1.960 * 20.9219
+  
+  res.lm.bornes[2,1] <- b[2] - 1.960 * 0.7631
+  res.lm.bornes[2,2] <- b[2] + 1.960 * 0.7631
+  
+  res.lm.bornes[3,1] <- b[3] - 1.960 * 1.3178
+  res.lm.bornes[3,2] <- b[3] + 1.960 * 1.3178
+  
+  res.lm.bornes[4,1] <- b[4] - 1.960 * 1.0815
+  res.lm.bornes[4,2] <- b[4] + 1.960 * 1.0815
+  
+  res.lm.bornes
+  
+  library(MASS)
+  a <- confint(reslm)
+  a  
+  
