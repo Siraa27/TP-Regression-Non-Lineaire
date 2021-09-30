@@ -84,3 +84,12 @@ par(new = TRUE)
 Partie 2 :
 
 Tirer des conclusions sur les distributions
+```{r}
+nomfile = "http://lmi2.insa-rouen.fr/~bportier/Data/donpol.txt"
+pollution <- read.table(file=nomfile,header=T,dec=".")
+par(mfrow=c(1,3))
+hist(pollution$ozon,prob=T,nclass=20,main="Ozon",col="cyan")
+par(new = TRUE)
+```
+
+
